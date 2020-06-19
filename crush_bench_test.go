@@ -13,7 +13,7 @@ func BenchmarkCrushStraw(b *testing.B) {
 	b.StartTimer()
 
 	for x := 0; x < b.N; x++ {
-		Select(tree, r.Int63(), 3, NODE, nil)
+		Select(tree, r.Int63(), 3, node)
 	}
 	b.StopTimer()
 }
@@ -24,7 +24,7 @@ func BenchmarkCrushTree(b *testing.B) {
 	tree := makeBenchTreeTree()
 	b.StartTimer()
 	for x := 0; x < b.N; x++ {
-		Select(tree, r.Int63(), 3, NODE, nil)
+		Select(tree, r.Int63(), 3, node)
 
 	}
 	b.StopTimer()
@@ -32,16 +32,16 @@ func BenchmarkCrushTree(b *testing.B) {
 
 func makeBenchStrawTree() *TestingNode {
 	var parent = new(TestingNode)
-	parent.Id = "ROOT"
-	parent.Type = ROOT
+	parent.ID = "root"
+	parent.Type = root
 	parent.Weight = 0
 	parent.Children = make([]Node, 5)
 	for dc := 0; dc < 5; dc++ {
 		var dcNode = new(TestingNode)
 		dcNode.Parent = parent
 		dcNode.Weight = 1
-		dcNode.Type = DATA_CENTER
-		dcNode.Id = parent.Id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.Type = dataCenter
+		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
 		dcNode.Children = make([]Node, 50)
 
 		parent.Children[dc] = dcNode
@@ -49,27 +49,27 @@ func makeBenchStrawTree() *TestingNode {
 		for rk := 0; rk < 50; rk++ {
 			var rkNode = new(TestingNode)
 			rkNode.Parent = dcNode
-			rkNode.Type = RACK
+			rkNode.Type = rack
 			rkNode.Weight = 1
-			rkNode.Id = dcNode.Id + ":Rack" + strconv.Itoa(rk)
+			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
 			rkNode.Children = make([]Node, 5000)
 
 			dcNode.Children[rk] = rkNode
 			for nd := 0; nd < 5000; nd++ {
 				var ndNode = new(TestingNode)
 				ndNode.Parent = rkNode
-				ndNode.Type = NODE
+				ndNode.Type = node
 				ndNode.Weight = 1
-				ndNode.Id = rkNode.Id + ":Node" + strconv.Itoa(nd)
+				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
 				ndNode.Children = make([]Node, 2)
 
 				rkNode.Children[nd] = ndNode
 				for dsk := 0; dsk < 2; dsk++ {
 					var dskNode = new(TestingNode)
 					dskNode.Parent = ndNode
-					dskNode.Type = DISK
+					dskNode.Type = disk
 					dskNode.Weight = 1
-					dskNode.Id = ndNode.Id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
 					dskNode.Selector = NewStrawSelector(dskNode)
 					ndNode.Children[dsk] = dskNode
 				}
@@ -85,16 +85,16 @@ func makeBenchStrawTree() *TestingNode {
 
 func makeBenchSimpleStrawTree() *TestingNode {
 	var parent = new(TestingNode)
-	parent.Id = "ROOT"
-	parent.Type = ROOT
+	parent.ID = "root"
+	parent.Type = root
 	parent.Weight = 0
 	parent.Children = make([]Node, 1)
 	for dc := 0; dc < 1; dc++ {
 		var dcNode = new(TestingNode)
 		dcNode.Parent = parent
 		dcNode.Weight = 1
-		dcNode.Type = DATA_CENTER
-		dcNode.Id = parent.Id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.Type = dataCenter
+		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
 		dcNode.Children = make([]Node, 1)
 
 		parent.Children[dc] = dcNode
@@ -102,27 +102,27 @@ func makeBenchSimpleStrawTree() *TestingNode {
 		for rk := 0; rk < 1; rk++ {
 			var rkNode = new(TestingNode)
 			rkNode.Parent = dcNode
-			rkNode.Type = RACK
+			rkNode.Type = rack
 			rkNode.Weight = 1
-			rkNode.Id = dcNode.Id + ":Rack" + strconv.Itoa(rk)
+			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
 			rkNode.Children = make([]Node, 3)
 
 			dcNode.Children[rk] = rkNode
 			for nd := 0; nd < 3; nd++ {
 				var ndNode = new(TestingNode)
 				ndNode.Parent = rkNode
-				ndNode.Type = NODE
+				ndNode.Type = node
 				ndNode.Weight = 1
-				ndNode.Id = rkNode.Id + ":Node" + strconv.Itoa(nd)
+				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
 				ndNode.Children = make([]Node, 1)
 
 				rkNode.Children[nd] = ndNode
 				for dsk := 0; dsk < 1; dsk++ {
 					var dskNode = new(TestingNode)
 					dskNode.Parent = ndNode
-					dskNode.Type = DISK
+					dskNode.Type = disk
 					dskNode.Weight = 1
-					dskNode.Id = ndNode.Id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
 					dskNode.Selector = NewStrawSelector(dskNode)
 					ndNode.Children[dsk] = dskNode
 				}
@@ -138,16 +138,16 @@ func makeBenchSimpleStrawTree() *TestingNode {
 
 func makeBenchTreeTree() *TestingNode {
 	var parent = new(TestingNode)
-	parent.Id = "ROOT"
-	parent.Type = ROOT
+	parent.ID = "root"
+	parent.Type = root
 	parent.Weight = 0
 	parent.Children = make([]Node, 5)
 	for dc := 0; dc < 5; dc++ {
 		var dcNode = new(TestingNode)
 		dcNode.Parent = parent
 		dcNode.Weight = 1
-		dcNode.Type = DATA_CENTER
-		dcNode.Id = parent.Id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.Type = dataCenter
+		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
 		dcNode.Children = make([]Node, 50)
 
 		parent.Children[dc] = dcNode
@@ -155,27 +155,27 @@ func makeBenchTreeTree() *TestingNode {
 		for rk := 0; rk < 50; rk++ {
 			var rkNode = new(TestingNode)
 			rkNode.Parent = dcNode
-			rkNode.Type = RACK
+			rkNode.Type = rack
 			rkNode.Weight = 1
-			rkNode.Id = dcNode.Id + ":Rack" + strconv.Itoa(rk)
+			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
 			rkNode.Children = make([]Node, 5000)
 
 			dcNode.Children[rk] = rkNode
 			for nd := 0; nd < 5000; nd++ {
 				var ndNode = new(TestingNode)
 				ndNode.Parent = rkNode
-				ndNode.Type = NODE
+				ndNode.Type = node
 				ndNode.Weight = 1
-				ndNode.Id = rkNode.Id + ":Node" + strconv.Itoa(nd)
+				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
 				ndNode.Children = make([]Node, 2)
 
 				rkNode.Children[nd] = ndNode
 				for dsk := 0; dsk < 2; dsk++ {
 					var dskNode = new(TestingNode)
 					dskNode.Parent = ndNode
-					dskNode.Type = DISK
+					dskNode.Type = disk
 					dskNode.Weight = 1
-					dskNode.Id = ndNode.Id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
 					dskNode.Selector = NewTreeSelector(dskNode)
 					ndNode.Children[dsk] = dskNode
 				}
@@ -191,16 +191,16 @@ func makeBenchTreeTree() *TestingNode {
 
 func makeBenchSimpleTreeTree() *TestingNode {
 	var parent = new(TestingNode)
-	parent.Id = "ROOT"
-	parent.Type = ROOT
+	parent.ID = "root"
+	parent.Type = root
 	parent.Weight = 0
 	parent.Children = make([]Node, 1)
 	for dc := 0; dc < 1; dc++ {
 		var dcNode = new(TestingNode)
 		dcNode.Parent = parent
 		dcNode.Weight = 1
-		dcNode.Type = DATA_CENTER
-		dcNode.Id = parent.Id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.Type = dataCenter
+		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
 		dcNode.Children = make([]Node, 1)
 
 		parent.Children[dc] = dcNode
@@ -208,27 +208,27 @@ func makeBenchSimpleTreeTree() *TestingNode {
 		for rk := 0; rk < 1; rk++ {
 			var rkNode = new(TestingNode)
 			rkNode.Parent = dcNode
-			rkNode.Type = RACK
+			rkNode.Type = rack
 			rkNode.Weight = 1
-			rkNode.Id = dcNode.Id + ":Rack" + strconv.Itoa(rk)
+			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
 			rkNode.Children = make([]Node, 3)
 
 			dcNode.Children[rk] = rkNode
 			for nd := 0; nd < 3; nd++ {
 				var ndNode = new(TestingNode)
 				ndNode.Parent = rkNode
-				ndNode.Type = NODE
+				ndNode.Type = node
 				ndNode.Weight = 1
-				ndNode.Id = rkNode.Id + ":Node" + strconv.Itoa(nd)
+				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
 				ndNode.Children = make([]Node, 1)
 
 				rkNode.Children[nd] = ndNode
 				for dsk := 0; dsk < 1; dsk++ {
 					var dskNode = new(TestingNode)
 					dskNode.Parent = ndNode
-					dskNode.Type = DISK
+					dskNode.Type = disk
 					dskNode.Weight = 1
-					dskNode.Id = ndNode.Id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
 					dskNode.Selector = NewTreeSelector(dskNode)
 					ndNode.Children[dsk] = dskNode
 				}

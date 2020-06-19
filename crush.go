@@ -1,105 +1,52 @@
 package gocrush
 
-import (
-//	"log"
-)
+const maxRetries uint8 = 3
 
-func Select(parent Node, input int64, count int, nodeType int, c Comparitor) []Node {
+// Select returns a node.
+func Select(parent Node, input int64, requestedNodesCount uint8, nodeType int) []Node {
 	var results []Node
-	//if len(parent.Children) < count {
-	//	panic("Asked for more node than are available")
-	//}
-	var rPrime = int64(0)
-	for r := 1; r <= count; r++ {
-		var failure = 0
-		var loopbacks = 0
-		var escape = false
-		var retryOrigin = false
-		var out Node
-		for {
-			retryOrigin = false
-			var in = parent
-			var skip = make(map[Node]bool)
-			var retryNode = false
-			for {
-				retryNode = false
-				rPrime = int64(r + failure)
-				out = in.Select(input, rPrime)
-				if out.GetType() != nodeType {
-					in = out
-					retryNode = true
+	for replica := uint8(0); replica < requestedNodesCount; replica++ {
+		var totalFailures uint8
+		var result Node
+		for retryDescent := true; retryDescent; retryDescent = false {
+			var replicaFailures uint8
+			bucket := parent
+			for retryBucket := true; retryBucket; retryBucket = false {
+				var selector uint8
+				if replica == 0 {
+					selector = replica + totalFailures
 				} else {
-					if contains(results, out) {
-						if !nodesAvailable(in, results, skip) {
-							if loopbacks == 150 {
-								escape = true
-								break
-							}
-							loopbacks += 1
-							retryOrigin = true
-						} else {
-							retryNode = true
-						}
-						failure += 1
-
-					} else if c != nil && !c(out) {
-						skip[out] = true
-						if !nodesAvailable(in, results, skip) {
-							if loopbacks == 150 {
-								escape = true
-								break
-							}
-							loopbacks += 1
-							retryOrigin = true
-						} else {
-							retryNode = true
-						}
-						failure += 1
-					} else if isDefunct(out) {
-						failure++
-						if loopbacks == 150 {
-							escape = true
-							break
-						}
-						loopbacks += 1
-						retryOrigin = true
-					} else {
+					selector = replica + replicaFailures
+				}
+				result = bucket.Select(input, int64(selector))
+				switch {
+				case result.GetType() != nodeType:
+					bucket = result
+					retryBucket = true
+				case contains(results, result):
+					totalFailures++
+					replicaFailures++
+					if replicaFailures >= maxRetries {
+						retryDescent = true
 						break
 					}
-				}
-				if !retryNode {
-					break
+					retryBucket = true
+				case isDefunct(result):
+					totalFailures++
+					replicaFailures++
+					retryDescent = true
 				}
 			}
-			if !retryOrigin {
-				break
-			}
 		}
-		if escape {
-			continue
-		}
-		results = append(results, out)
+		results = append(results, result)
 	}
 	return results
 }
 
-func nodesAvailable(parent Node, selected []Node, rejected map[Node]bool) bool {
-	var children = parent.GetChildren()
-	for _, child := range children {
-		if !isDefunct(child) {
-			if ok := contains(selected, child); !ok {
-				if _, ok := rejected[child]; !ok {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
-func contains(s []Node, n Node) bool {
-	for _, a := range s {
-		if a == n {
+func contains(nodes []Node, n Node) bool {
+	i := n.GetID()
+	for _, node := range nodes {
+		if node.GetID() == i {
 			return true
 		}
 	}
@@ -107,8 +54,10 @@ func contains(s []Node, n Node) bool {
 }
 
 func isDefunct(n Node) bool {
-	if n.IsLeaf() && n.IsFailed() {
-		return true
+	if n.IsLeaf() {
+		if n.IsFailed() || n.IsOverloaded() {
+			return true
+		}
 	}
 	return false
 }

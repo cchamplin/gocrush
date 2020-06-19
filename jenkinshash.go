@@ -1,18 +1,18 @@
 package gocrush
 
 const (
-	MAX_VALUE       = int64(0xFFFFFFFF)
-	CRUSH_HASH_SEED = int64(1315423911)
+	maxValue      = int64(0xFFFFFFFF)
+	crushHashSeed = int64(1315423911)
 )
 
-type Triple struct {
+type triple struct {
 	a int64
 	b int64
 	c int64
 }
 
 func hash1(a int64) int64 {
-	var hash = xor(CRUSH_HASH_SEED, a)
+	var hash = xor(crushHashSeed, a)
 	var x = int64(231232)
 	var y = int64(1232)
 	b := a
@@ -22,7 +22,7 @@ func hash1(a int64) int64 {
 }
 
 func hash2(a, b int64) int64 {
-	var hash = xor(xor(CRUSH_HASH_SEED, a), b)
+	var hash = xor(xor(crushHashSeed, a), b)
 	var x = int64(231232)
 	var y = int64(1232)
 	a, b, hash = hashMix(a, b, hash)
@@ -32,7 +32,7 @@ func hash2(a, b int64) int64 {
 }
 
 func hash3(a, b, c int64) int64 {
-	var hash = xor(xor(xor(CRUSH_HASH_SEED, a), b), c)
+	var hash = xor(xor(xor(crushHashSeed, a), b), c)
 	var x = int64(231232)
 	var y = int64(1232)
 	a, b, hash = hashMix(a, b, hash)
@@ -45,7 +45,7 @@ func hash3(a, b, c int64) int64 {
 }
 
 func hash4(a, b, c, d int64) int64 {
-	var hash = xor(xor(xor(xor(CRUSH_HASH_SEED, a), b), c), d)
+	var hash = xor(xor(xor(xor(crushHashSeed, a), b), c), d)
 	var x = int64(231232)
 	var y = int64(1232)
 	a, b, hash = hashMix(a, b, hash)
@@ -91,13 +91,13 @@ func hashMix(a, b, c int64) (int64, int64, int64) {
 }
 
 func subtract(val, subtract int64) int64 {
-	return (val - subtract) & MAX_VALUE
+	return (val - subtract) & maxValue
 }
 
 func leftShift(val, shift int64) int64 {
-	return (val << uint64(shift)) & MAX_VALUE
+	return (val << uint64(shift)) & maxValue
 }
 
 func xor(val, xor int64) int64 {
-	return (val ^ xor) & MAX_VALUE
+	return (val ^ xor) & maxValue
 }

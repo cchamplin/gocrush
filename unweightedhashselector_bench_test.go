@@ -19,9 +19,9 @@ func BenchmarkUnwweightedHashSelector(b *testing.B) {
 	for i := 0; i < 10000; i++ {
 		child := new(TestingNode)
 		child.Weight = 1
-		child.Id = "Child" + strconv.Itoa(i)
+		child.ID = "Child" + strconv.Itoa(i)
 		node.Children[i] = child
-		counter[child.Id] = 0
+		counter[child.ID] = 0
 	}
 	b.StartTimer()
 	for x := 0; x < b.N; x++ {
@@ -32,7 +32,7 @@ func BenchmarkUnwweightedHashSelector(b *testing.B) {
 			// Get replicants
 			for r := int64(0); r < 3; r++ {
 				nn := selector.Select(i, r)
-				counter[nn.GetId()] += 1
+				counter[nn.GetID()]++
 			}
 		}
 
