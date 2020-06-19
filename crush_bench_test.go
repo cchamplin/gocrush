@@ -13,7 +13,7 @@ func BenchmarkCrushStraw(b *testing.B) {
 	b.StartTimer()
 
 	for x := 0; x < b.N; x++ {
-		Select(tree, r.Int63(), 3, node, nil)
+		Select(tree, r.Int63(), 3, node)
 	}
 	b.StopTimer()
 }
@@ -24,7 +24,7 @@ func BenchmarkCrushTree(b *testing.B) {
 	tree := makeBenchTreeTree()
 	b.StartTimer()
 	for x := 0; x < b.N; x++ {
-		Select(tree, r.Int63(), 3, node, nil)
+		Select(tree, r.Int63(), 3, node)
 
 	}
 	b.StopTimer()

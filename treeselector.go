@@ -76,7 +76,6 @@ func depth(size int) int {
 	if size == 0 {
 		return 0
 	}
-
 	var depth int = 1
 	var t int = size - 1
 	for t > 0 {
@@ -99,26 +98,19 @@ func right(x int) int {
 // Select returns a node
 func (s *TreeSelector) Select(input int64, round int64) Node {
 	n := len(s.weights) >> 1
-
 	for (n & 1) < 1 {
-
 		var l int
 		w := s.weights[n]
 		hash := uint64(hash4(input, int64(n), round, btoi(digestString(s.Node.GetID())))) * uint64(w)
-
 		hash = hash >> 32
-
 		l = left(n)
-
 		if hash < uint64(s.weights[l]) {
 			n = l
 		} else {
 			n = right(n)
-
 		}
 	}
 	var result Node
-
 	result = s.Node.GetChildren()[n>>1]
 	return result
 }

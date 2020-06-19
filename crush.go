@@ -1,71 +1,52 @@
 package gocrush
 
-const maxRetries uint8 = 150
+const maxRetries uint8 = 3
 
-// Select return a node. Main algorithm implementation
-func Select(parent Node, input int64, requestedNodesCount uint8, nodeType int, comp Comparator) []Node {
+// Select returns a node.
+func Select(parent Node, input int64, requestedNodesCount uint8, nodeType int) []Node {
 	var results []Node
-	for r := uint8(1); r <= requestedNodesCount; r++ {
-		var retries, failure uint8
-		var escape bool
-		var child Node
-		var skip = make(map[Node]bool)
-		retry := true
-		for retry {
-			child = parent.Select(input, int64(r+failure))
-			if child.GetType() != nodeType {
-				parent = child
-			}
-			switch {
-			case contains(results, child):
-				if !nodesAvailable(parent, results, skip) {
-					if retries >= maxRetries {
-						escape = true
+	for replica := uint8(0); replica < requestedNodesCount; replica++ {
+		var totalFailures uint8
+		var result Node
+		for retryDescent := true; retryDescent; retryDescent = false {
+			var replicaFailures uint8
+			bucket := parent
+			for retryBucket := true; retryBucket; retryBucket = false {
+				var selector uint8
+				if replica == 0 {
+					selector = replica + totalFailures
+				} else {
+					selector = replica + replicaFailures
+				}
+				result = bucket.Select(input, int64(selector))
+				switch {
+				case result.GetType() != nodeType:
+					bucket = result
+					retryBucket = true
+				case contains(results, result):
+					totalFailures++
+					replicaFailures++
+					if replicaFailures >= maxRetries {
+						retryDescent = true
 						break
 					}
-					retries++
+					retryBucket = true
+				case isDefunct(result):
+					totalFailures++
+					replicaFailures++
+					retryDescent = true
 				}
-				failure++
-			case comp != nil && !comp(child):
-				skip[child] = true
-				if !nodesAvailable(parent, results, skip) {
-					if retries >= maxRetries {
-						escape = true
-						break
-					}
-					retries++
-				}
-				failure++
-			case isDefunct(child):
-				failure++
-				if retries >= maxRetries {
-					escape = true
-					break
-				}
-				retries++
-			default:
-				retry = false
 			}
 		}
-		if !escape {
-			results = append(results, child)
-		}
+		results = append(results, result)
 	}
 	return results
 }
 
-func nodesAvailable(parent Node, selected []Node, rejected map[Node]bool) bool {
-	for _, child := range parent.GetChildren() {
-		if !isDefunct(child) && !contains(selected, child) && !rejected[child] {
-			return true
-		}
-	}
-	return false
-}
-
-func contains(s []Node, n Node) bool {
-	for _, a := range s {
-		if a == n {
+func contains(nodes []Node, n Node) bool {
+	i := n.GetID()
+	for _, node := range nodes {
+		if node.GetID() == i {
 			return true
 		}
 	}
@@ -73,8 +54,10 @@ func contains(s []Node, n Node) bool {
 }
 
 func isDefunct(n Node) bool {
-	if n.IsLeaf() && n.IsFailed() {
-		return true
+	if n.IsLeaf() {
+		if n.IsFailed() || n.IsOverloaded() {
+			return true
+		}
 	}
 	return false
 }

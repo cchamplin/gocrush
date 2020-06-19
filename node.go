@@ -1,12 +1,13 @@
 package gocrush
 
-// Node represents node which will be returned by algorithm
+// Node represents CRUSH node.
 type Node interface {
 	GetChildren() []Node
 	GetType() int
 	GetWeight() int64
 	GetID() string
 	IsFailed() bool
+	IsOverloaded() bool
 	GetSelector() Selector
 	SetSelector(Selector)
 	GetParent() Node
@@ -14,8 +15,9 @@ type Node interface {
 	Select(input int64, round int64) Node
 }
 
-// Comparator is used by crush. Not sure how yet.
-type Comparator func(Node) bool
+// Overload may be used to skip given node manually.
+// If function returns TRUE, than node will be disabled.
+type Overload func(Node) bool
 
 // CrushNode is a mock used by unit tests
 type CrushNode struct {
@@ -26,11 +28,12 @@ type CrushNode struct {
 type TestingNode struct {
 	Children []Node
 	CrushNode
-	Weight int64
-	Parent Node
-	Failed bool
-	ID     string
-	Type   int
+	Weight   int64
+	Parent   Node
+	Failed   bool
+	Overloaded bool
+	ID       string
+	Type     int
 }
 
 // GetSelector is part of TestingNode
@@ -48,9 +51,14 @@ func (n CrushNode) Select(input int64, round int64) Node {
 	return n.GetSelector().Select(input, round)
 }
 
-// IsFailed is part of TestingNode
+// IsFailed return true if node is marked as failed.
 func (n TestingNode) IsFailed() bool {
 	return n.Failed
+}
+
+// IsOverloaded returns true if node is marked as overloaded.
+func (n TestingNode) IsOverloaded() bool {
+	return n.Overloaded
 }
 
 // IsLeaf is part of TestingNode

@@ -18,11 +18,11 @@ const (
 
 func TestCrushStraw(t *testing.T) {
 	tree := makeStrawTree()
-	nodes1 := Select(tree, 15, 3, node, nil)
+	nodes1 := Select(tree, 15, 3, node)
 
-	nodes2 := Select(tree, 4564564564, 3, node, nil)
+	nodes2 := Select(tree, 4564564564, 3, node)
 
-	nodes3 := Select(tree, 8789342322, 3, node, nil)
+	nodes3 := Select(tree, 8789342322, 3, node)
 	for _, node := range nodes1 {
 		log.Printf("[STRAW] For key %d got node : %s", 15, node.GetID())
 	}
@@ -39,7 +39,7 @@ func TestCrushStraw(t *testing.T) {
 func TestCrushStrawTreeChange(t *testing.T) {
 	tree := makeStrawTree()
 	var key int64 = 64646436
-	nodes := Select(tree, key, 3, node, nil)
+	nodes := Select(tree, key, 3, node)
 
 	subTree, _ := tree.Children[2].(*TestingNode)
 	subSubTree, _ := subTree.Children[2].(*TestingNode)
@@ -49,7 +49,7 @@ func TestCrushStrawTreeChange(t *testing.T) {
 	for idx, node := range subSubTree.GetChildren() {
 		log.Printf("[STRAW] Node: (%d idx) %s", idx, node.GetID())
 	}
-	nodes2 := Select(tree, key, 3, node, nil)
+	nodes2 := Select(tree, key, 3, node)
 
 	for _, node := range nodes {
 		log.Printf("[STRAW] For key %d got node : %s", key, node.GetID())
@@ -64,11 +64,11 @@ func TestCrushStrawTreeChange(t *testing.T) {
 
 func TestCrushTree(t *testing.T) {
 	tree := makeTreeTree()
-	nodes1 := Select(tree, 15, 3, node, nil)
+	nodes1 := Select(tree, 15, 3, node)
 
-	nodes2 := Select(tree, 4564564564, 3, node, nil)
+	nodes2 := Select(tree, 4564564564, 3, node)
 
-	nodes3 := Select(tree, 8789342322, 3, node, nil)
+	nodes3 := Select(tree, 8789342322, 3, node)
 	for _, node := range nodes1 {
 		log.Printf("[TREE] For key %d got node : %s", 15, node.GetID())
 	}
@@ -85,7 +85,7 @@ func TestCrushTree(t *testing.T) {
 func TestCrushTreeTreeChange(t *testing.T) {
 	tree := makeTreeTree()
 	var key int64 = 64646436
-	nodes := Select(tree, key, 3, node, nil)
+	nodes := Select(tree, key, 3, node)
 
 	subTree, _ := tree.Children[3].(*TestingNode)
 	subSubTree, _ := subTree.Children[0].(*TestingNode)
@@ -95,7 +95,7 @@ func TestCrushTreeTreeChange(t *testing.T) {
 	for idx, node := range subSubTree.GetChildren() {
 		log.Printf("[TREE] Node: (%d idx) %s", idx, node.GetID())
 	}
-	nodes2 := Select(tree, key, 3, node, nil)
+	nodes2 := Select(tree, key, 3, node)
 
 	for _, node := range nodes {
 		log.Printf("[TREE] For key %d got node : %s", key, node.GetID())
