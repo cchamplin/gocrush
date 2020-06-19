@@ -14,9 +14,9 @@ func TestUniformSelector(t *testing.T) {
 	for i := 0; i < 8; i++ {
 		child := new(TestingNode)
 		child.Weight = 1
-		child.Id = "Child" + strconv.Itoa(i)
+		child.ID = "Child" + strconv.Itoa(i)
 		node.Children[i] = child
-		counter[child.Id] = 0
+		counter[child.ID] = 0
 	}
 	selector := NewUniformSelector(node)
 
@@ -24,7 +24,7 @@ func TestUniformSelector(t *testing.T) {
 		// Get replicants
 		for r := int64(0); r < 3; r++ {
 			nn := selector.Select(i, r)
-			counter[nn.GetId()] += 1
+			counter[nn.GetID()]++
 		}
 	}
 
@@ -45,7 +45,7 @@ func TestUniformSelectorAdd(t *testing.T) {
 	for i := 0; i < 8; i++ {
 		child := new(TestingNode)
 		child.Weight = 1
-		child.Id = "Child" + strconv.Itoa(i)
+		child.ID = "Child" + strconv.Itoa(i)
 		node.Children[i] = child
 	}
 	selector := NewUniformSelector(node)
@@ -60,7 +60,7 @@ func TestUniformSelectorAdd(t *testing.T) {
 
 	child := new(TestingNode)
 	child.Weight = 1
-	child.Id = "Child9"
+	child.ID = "Child9"
 	node.Children = append(node.Children, child)
 	selector = NewUniformSelector(node)
 	for i := int64(0); i < 5; i++ {

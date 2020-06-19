@@ -1,7 +1,5 @@
 package gocrush
-
-import ()
-
+// UniformSelector implements Select interface
 type UniformSelector struct {
 	Node        Node
 	totalWeight int64
@@ -12,6 +10,7 @@ type UniformSelector struct {
 	curInput int64
 }
 
+// NewUniformSelector returns new UniformSelector
 func NewUniformSelector(n Node) *UniformSelector {
 	var u = new(UniformSelector)
 	if !n.IsLeaf() {
@@ -25,13 +24,14 @@ func NewUniformSelector(n Node) *UniformSelector {
 	return u
 }
 
+// Select returns a node
 func (s *UniformSelector) Select(input int64, round int64) Node {
 	var size = len(s.Node.GetChildren())
 	var pr int64 = int64(round % int64(size))
 	if s.curInput != input || s.perm == 0 {
 		s.curInput = input
 		if pr == 0 {
-			hash := hash3(input, Btoi(digestString(s.Node.GetId())), 0) % int64(size)
+			hash := hash3(input, btoi(digestString(s.Node.GetID())), 0) % int64(size)
 			s.perms[0] = hash
 			s.perm = 0xffff
 			return s.Node.GetChildren()[hash]
@@ -50,14 +50,14 @@ func (s *UniformSelector) Select(input int64, round int64) Node {
 	for s.perm <= pr {
 		var p = s.perm
 		if p < int64(size-1) {
-			hash := hash3(input, Btoi(digestString(s.Node.GetId())), p) % (int64(size) - p)
+			hash := hash3(input, btoi(digestString(s.Node.GetID())), p) % (int64(size) - p)
 			if hash > 0 {
 				var t = s.perms[p+hash]
 				s.perms[p+hash] = s.perms[p]
 				s.perms[p] = t
 			}
 		}
-		s.perm += 1
+		s.perm++
 	}
 	return s.Node.GetChildren()[s.perms[pr]]
 }

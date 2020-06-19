@@ -1,97 +1,63 @@
 package gocrush
 
-import (
-//	"log"
-)
+const maxRetries uint8 = 150
 
-func Select(parent Node, input int64, count int, nodeType int, c Comparitor) []Node {
+// Select return a node. Main algorithm implementation
+func Select(parent Node, input int64, requestedNodesCount uint8, nodeType int, comp Comparator) []Node {
 	var results []Node
-	//if len(parent.Children) < count {
-	//	panic("Asked for more node than are available")
-	//}
-	var rPrime = int64(0)
-	for r := 1; r <= count; r++ {
-		var failure = 0
-		var loopbacks = 0
-		var escape = false
-		var retryOrigin = false
-		var out Node
-		for {
-			retryOrigin = false
-			var in = parent
-			var skip = make(map[Node]bool)
-			var retryNode = false
-			for {
-				retryNode = false
-				rPrime = int64(r + failure)
-				out = in.Select(input, rPrime)
-				if out.GetType() != nodeType {
-					in = out
-					retryNode = true
-				} else {
-					if contains(results, out) {
-						if !nodesAvailable(in, results, skip) {
-							if loopbacks == 150 {
-								escape = true
-								break
-							}
-							loopbacks += 1
-							retryOrigin = true
-						} else {
-							retryNode = true
-						}
-						failure += 1
-
-					} else if c != nil && !c(out) {
-						skip[out] = true
-						if !nodesAvailable(in, results, skip) {
-							if loopbacks == 150 {
-								escape = true
-								break
-							}
-							loopbacks += 1
-							retryOrigin = true
-						} else {
-							retryNode = true
-						}
-						failure += 1
-					} else if isDefunct(out) {
-						failure++
-						if loopbacks == 150 {
-							escape = true
-							break
-						}
-						loopbacks += 1
-						retryOrigin = true
-					} else {
+	for r := uint8(1); r <= requestedNodesCount; r++ {
+		var retries, failure uint8
+		var escape bool
+		var child Node
+		var skip = make(map[Node]bool)
+		retry := true
+		for retry {
+			child = parent.Select(input, int64(r+failure))
+			if child.GetType() != nodeType {
+				parent = child
+			}
+			switch {
+			case contains(results, child):
+				if !nodesAvailable(parent, results, skip) {
+					if retries >= maxRetries {
+						escape = true
 						break
 					}
+					retries++
 				}
-				if !retryNode {
+				failure++
+			case comp != nil && !comp(child):
+				skip[child] = true
+				if !nodesAvailable(parent, results, skip) {
+					if retries >= maxRetries {
+						escape = true
+						break
+					}
+					retries++
+				}
+				failure++
+			case isDefunct(child):
+				failure++
+				if retries >= maxRetries {
+					escape = true
 					break
 				}
-			}
-			if !retryOrigin {
-				break
+				retries++
+			default:
+				retry = false
 			}
 		}
-		if escape {
-			continue
+		if !escape {
+			results = append(results, child)
 		}
-		results = append(results, out)
 	}
 	return results
 }
 
 func nodesAvailable(parent Node, selected []Node, rejected map[Node]bool) bool {
-	var children = parent.GetChildren()
-	for _, child := range children {
-		if !isDefunct(child) {
-			if ok := contains(selected, child); !ok {
-				if _, ok := rejected[child]; !ok {
-					return true
-				}
-			}
+	for _, child := range parent.GetChildren() {
+		if !isDefunct(child) && !contains(selected, child) && !rejected[child] {
+			return true
 		}
 	}
 	return false

@@ -1,18 +1,18 @@
 package gocrush
 
-import ()
-
+// TreeSelector implements Select interface
 type TreeSelector struct {
 	Node        Node
 	weights     []int64
 	totalWeight int64
 }
 
+// NewTreeSelector returns new TreeSelector
 func NewTreeSelector(n Node) *TreeSelector {
 	var t = new(TreeSelector)
 	if !n.IsLeaf() {
 		t.Node = n
-		var depth = calc_depth(len(n.GetChildren()))
+		var depth = depth(len(n.GetChildren()))
 		t.weights = make([]int64, 1<<uint(depth))
 
 		//log.Printf("Tree with depth of %d for %d items and %d nodes", depth, len(n.Children), len(t.weights))
@@ -36,7 +36,7 @@ func NewTreeSelector(n Node) *TreeSelector {
 
 /*func (t *TreeSelector) AddItem(n Node) {
 	var newSize int = len(t.Node.GetChildren()) + 1
-	var depth = calc_depth(newSize)
+	var depth = depth(newSize)
 	node := (((newSize - 1) + 1) << 1) - 1
 	var newSlice = make([]int64, 1<<uint(depth))
 	copy(newSlice, t.weights)
@@ -63,19 +63,16 @@ func height(n int) int {
 	}
 	return h
 }
-func on_right(n, h int) int {
-	return n & (1 << uint(h+1))
-}
+
 func parent(n int) int {
 	var h int = height(n)
-	if on_right(n, h) > 0 {
+	if n&(1<<uint(h+1)) > 0 {
 		return n - (1 << uint(h))
-	} else {
-		return n + (1 << uint(h))
 	}
+	return n + (1 << uint(h))
 }
 
-func calc_depth(size int) int {
+func depth(size int) int {
 	if size == 0 {
 		return 0
 	}
@@ -99,6 +96,7 @@ func right(x int) int {
 	return x + (1 << uint(h-1))
 }
 
+// Select returns a node
 func (s *TreeSelector) Select(input int64, round int64) Node {
 	n := len(s.weights) >> 1
 
@@ -106,7 +104,7 @@ func (s *TreeSelector) Select(input int64, round int64) Node {
 
 		var l int
 		w := s.weights[n]
-		hash := uint64(hash4(input, int64(n), round, Btoi(digestString(s.Node.GetId())))) * uint64(w)
+		hash := uint64(hash4(input, int64(n), round, btoi(digestString(s.Node.GetID())))) * uint64(w)
 
 		hash = hash >> 32
 

@@ -7,17 +7,19 @@ import (
 	"sort"
 )
 
+// HashingSelector holds ....
 type HashingSelector struct {
 	tokenList tokenList
 	tokenMap  map[int64]Node
 }
 
+// NewHashingSelector returns new instance of HashingSelector
 func NewHashingSelector(n Node) *HashingSelector {
 	var h = new(HashingSelector)
 	var nodes = n.GetChildren()
 	var maxWeight int64 = 0
 	for _, node := range nodes {
-		maxWeight = Max64(maxWeight, node.GetWeight())
+		maxWeight = max64(maxWeight, node.GetWeight())
 	}
 	h.tokenMap = make(map[int64]Node)
 	for _, node := range nodes {
@@ -26,19 +28,19 @@ func NewHashingSelector(n Node) *HashingSelector {
 		for i := int64(0); i < count; i++ {
 			var input []byte
 			if len(hash) == 0 {
-				input = []byte(node.GetId())
+				input = []byte(node.GetID())
 			} else {
 				input = hash
 			}
 			hash = digestBytes(input)
-			token := Btoi(hash)
+			token := btoi(hash)
 			if _, ok := h.tokenMap[token]; !ok {
 				h.tokenMap[token] = node
 			}
 		}
 	}
 	h.tokenList = make([]int64, 0, len(h.tokenMap))
-	for k, _ := range h.tokenMap {
+	for k := range h.tokenMap {
 		h.tokenList = append(h.tokenList, k)
 	}
 	sort.Sort(h.tokenList)
@@ -59,7 +61,7 @@ func (t tokenList) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
 }
 
-func Max64(a int64, b int64) int64 {
+func max64(a int64, b int64) int64 {
 	if a > b {
 		return a
 	}
@@ -94,20 +96,21 @@ func digestString(input string) []byte {
 	return hash
 }
 
-func Btoi(b []byte) int64 {
+func btoi(b []byte) int64 {
 	var result int64
 	buf := bytes.NewReader(b)
 	binary.Read(buf, binary.LittleEndian, &result)
 	return result
 }
 
+// Select implements Select interface
 func (s *HashingSelector) Select(input int64, round int64) Node {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, input)
 	binary.Write(buf, binary.LittleEndian, round)
 	bytes := buf.Bytes()
 	hash := digestBytes(bytes)
-	token := Btoi(hash)
+	token := btoi(hash)
 	return s.tokenMap[s.findToken(token)]
 }
 

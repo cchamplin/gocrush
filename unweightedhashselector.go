@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+// UnweightedHashSelector implements Selector interface
 type UnweightedHashSelector struct {
 	tokenList utokenList
 	tokenMap  map[uint64]Node
@@ -29,6 +30,7 @@ func hashVal(bKey []byte) uint64 {
 		(uint64(bKey[0])))
 }
 
+// NewUnweightedHashSelector returns new UnweightedHashSelector
 func NewUnweightedHashSelector(n Node) *UnweightedHashSelector {
 	var s = new(UnweightedHashSelector)
 	if !n.IsLeaf() {
@@ -40,12 +42,12 @@ func NewUnweightedHashSelector(n Node) *UnweightedHashSelector {
 		for _, node := range nodes {
 			var bKey []byte
 			for c := 0; c < factor; c++ {
-				bKey = digestString(fmt.Sprintf("%s-%s", node.GetId(), c))
+				bKey = digestString(fmt.Sprintf("%s-%d", node.GetID(), c))
 				for i := 0; i < 3; i++ {
 					key := hashVal(bKey[i*4 : i*4+4])
 					s.tokenMap[key] = node
 					s.tokenList[idx] = key
-					idx += 1
+					idx++
 				}
 			}
 		}
@@ -53,6 +55,8 @@ func NewUnweightedHashSelector(n Node) *UnweightedHashSelector {
 	sort.Sort(s.tokenList)
 	return s
 }
+
+// Select returns a node
 func (s *UnweightedHashSelector) Select(input int64, round int64) Node {
 	var hash = hash2(input, round)
 	token := uint64(hash)

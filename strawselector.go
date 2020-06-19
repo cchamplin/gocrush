@@ -5,10 +5,12 @@ import (
 	"math"
 )
 
+// StrawSelector implements Selector interface
 type StrawSelector struct {
 	Straws map[Node]int64
 }
 
+// NewStrawSelector returns new StrawSelector
 func NewStrawSelector(n Node) *StrawSelector {
 	var s = new(StrawSelector)
 	s.Straws = make(map[Node]int64)
@@ -23,11 +25,11 @@ func NewStrawSelector(n Node) *StrawSelector {
 			var current = sortedNodes[i]
 			if current.GetWeight() == 0 {
 				s.Straws[current] = 0
-				i += 1
+				i++
 				continue
 			}
 			s.Straws[current] = int64(straw * 0x10000)
-			i += 1
+			i++
 			if i == len(sortedNodes) {
 				break
 			}
@@ -40,7 +42,7 @@ func NewStrawSelector(n Node) *StrawSelector {
 			wbelow += (float64(previous.GetWeight()) - lastw) * float64(numLeft)
 			for j := 0; j < len(sortedNodes); j++ {
 				if sortedNodes[j].GetWeight() == current.GetWeight() {
-					numLeft -= 1
+					numLeft--
 				} else {
 					break
 				}
@@ -54,6 +56,7 @@ func NewStrawSelector(n Node) *StrawSelector {
 	return s
 }
 
+// Select returns selected node
 func (s *StrawSelector) Select(input int64, round int64) Node {
 	var result Node
 	var hiScore = int64(-1)
@@ -72,7 +75,7 @@ func (s *StrawSelector) Select(input int64, round int64) Node {
 
 func weightedScore(child Node, straw int64, input int64, round int64) int64 {
 
-	var hash = hash3(input, Btoi(digestString(child.GetId())), round)
+	var hash = hash3(input, btoi(digestString(child.GetID())), round)
 	hash = hash & 0xFFFF
 	var weightedScore = hash * straw
 	return weightedScore
