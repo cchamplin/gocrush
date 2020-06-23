@@ -8,7 +8,7 @@ import (
 // UnweightedHashSelector implements Selector interface
 type UnweightedHashSelector struct {
 	tokenList utokenList
-	tokenMap  map[uint64]Node
+	tokenMap  map[uint64]CNode
 }
 type utokenList []uint64
 
@@ -31,11 +31,11 @@ func hashVal(bKey []byte) uint64 {
 }
 
 // NewUnweightedHashSelector returns new UnweightedHashSelector
-func NewUnweightedHashSelector(n Node) *UnweightedHashSelector {
+func NewUnweightedHashSelector(n CNode) *UnweightedHashSelector {
 	var s = new(UnweightedHashSelector)
 	if !n.IsLeaf() {
-		nodes := n.GetChildren()
-		s.tokenMap = make(map[uint64]Node)
+		nodes := n.GetChildrens()
+		s.tokenMap = make(map[uint64]CNode)
 		var factor int = 60 * len(nodes) * len(nodes)
 		idx := 0
 		s.tokenList = make([]uint64, len(nodes)*factor*3)
@@ -57,7 +57,7 @@ func NewUnweightedHashSelector(n Node) *UnweightedHashSelector {
 }
 
 // Select returns a node
-func (s *UnweightedHashSelector) Select(input int64, round int64) Node {
+func (s *UnweightedHashSelector) Select(input int64, round int64) CNode {
 	var hash = hash2(input, round)
 	token := uint64(hash)
 	return s.tokenMap[s.findToken(token)]

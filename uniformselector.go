@@ -1,32 +1,31 @@
 package gocrush
-// UniformSelector implements Select interface
-type UniformSelector struct {
-	Node        Node
-	totalWeight int64
 
-	perm  int64
-	perms []int64
+// UniformSelector implements Selector interface
+type UniformSelector struct {
+	Node        CNode
+	totalWeight int64
+	perm        int64
+	perms       []int64
 	// This is not thread safe, which makes me unhappy....
 	curInput int64
 }
 
 // NewUniformSelector returns new UniformSelector
-func NewUniformSelector(n Node) *UniformSelector {
+func NewUniformSelector(n CNode) *UniformSelector {
 	var u = new(UniformSelector)
 	if !n.IsLeaf() {
-		u.totalWeight = int64(len(n.GetChildren())) * n.GetWeight()
+		u.totalWeight = int64(len(n.GetChildrens())) * n.GetWeight()
 		u.Node = n
-		u.perms = make([]int64, len(n.GetChildren()))
+		u.perms = make([]int64, len(n.GetChildrens()))
 		u.perm = 0
 		u.curInput = -1
 	}
-
 	return u
 }
 
 // Select returns a node
-func (s *UniformSelector) Select(input int64, round int64) Node {
-	var size = len(s.Node.GetChildren())
+func (s *UniformSelector) Select(input int64, round int64) CNode {
+	var size = len(s.Node.GetChildrens())
 	var pr int64 = int64(round % int64(size))
 	if s.curInput != input || s.perm == 0 {
 		s.curInput = input
@@ -34,7 +33,7 @@ func (s *UniformSelector) Select(input int64, round int64) Node {
 			hash := hash3(input, btoi(digestString(s.Node.GetID())), 0) % int64(size)
 			s.perms[0] = hash
 			s.perm = 0xffff
-			return s.Node.GetChildren()[hash]
+			return s.Node.GetChildrens()[hash]
 		}
 		for i := 0; i < size; i++ {
 			s.perms[i] = int64(i)
@@ -59,5 +58,5 @@ func (s *UniformSelector) Select(input int64, round int64) Node {
 		}
 		s.perm++
 	}
-	return s.Node.GetChildren()[s.perms[pr]]
+	return s.Node.GetChildrens()[s.perms[pr]]
 }

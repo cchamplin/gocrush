@@ -1,22 +1,22 @@
 package gocrush
 
 import (
-	"github.com/stretchr/testify/assert"
-	//"log"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHashingSelector(t *testing.T) {
-	node := new(TestingNode)
-	node.Children = make([]Node, 8)
+	node := new(CrushNode)
+	node.childrens = make([]CNode, 8)
 	counter := make(map[string]int)
 	for i := 0; i < 8; i++ {
-		child := new(TestingNode)
-		child.Weight = 1
-		child.ID = "Child" + strconv.Itoa(i)
-		node.Children[i] = child
-		counter[child.ID] = 0
+		child := new(CrushNode)
+		child.weight = 1
+		child.id = "Child" + strconv.Itoa(i)
+		node.childrens[i] = child
+		counter[child.id] = 0
 	}
 	selector := NewHashingSelector(node)
 
@@ -39,14 +39,14 @@ func TestHashingSelector(t *testing.T) {
 }
 
 func TestHashingSelectorAdd(t *testing.T) {
-	node := new(TestingNode)
-	node.Children = make([]Node, 8)
-	counter := make(map[string]Node)
+	node := new(CrushNode)
+	node.childrens = make([]CNode, 8)
+	counter := make(map[string]CNode)
 	for i := 0; i < 8; i++ {
-		child := new(TestingNode)
-		child.Weight = 1
-		child.ID = "Child" + strconv.Itoa(i)
-		node.Children[i] = child
+		child := new(CrushNode)
+		child.weight = 1
+		child.id = "Child" + strconv.Itoa(i)
+		node.childrens[i] = child
 	}
 	selector := NewHashingSelector(node)
 	for i := int64(0); i < 5; i++ {
@@ -56,10 +56,10 @@ func TestHashingSelectorAdd(t *testing.T) {
 		}
 
 	}
-	child := new(TestingNode)
-	child.Weight = 1
-	child.ID = "Child9"
-	node.Children = append(node.Children, child)
+	child := new(CrushNode)
+	child.weight = 1
+	child.id = "Child9"
+	node.childrens = append(node.childrens, child)
 	selector = NewHashingSelector(node)
 	for i := int64(0); i < 5; i++ {
 		for r := int64(0); r < 3; r++ {
