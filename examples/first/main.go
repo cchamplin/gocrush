@@ -18,9 +18,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	selectedNodes := g.Select(tree, 12312313131, 3, gocrush.Node)
-	for _, node := range selectedNodes {
-		fmt.Printf("Node ID: %v, isLeaf: %v, Type: %v, Parent: %v, IsFailed: %v\n", node.GetID(), node.IsLeaf(), node.GetGroup(), node.GetParent().GetID(), node.IsFailed())
+	selectedNodes := g.Select(tree, 12312313131, 1, gocrush.Disk)
+	for _, dc := range selectedNodes {
+		fmt.Printf("Node ID: %v, isLeaf: %v, Group: %v, Parent: %v, IsFailed: %v\n",
+			dc.GetID(), dc.IsLeaf(), dc.GetGroup(), dc.GetParent().GetID(), dc.IsFailed())
 
 	}
 }
@@ -36,7 +37,7 @@ func makeNewStrawTree() (*gocrush.CrushNode, error) {
 	}
 	for dc := 0; dc < 4; dc++ {
 		dataCenter, err := gocrush.NewNode(&gocrush.CNodeConfig{
-			ID:     parent.GetID() + ":dataCenter" + strconv.Itoa(dc),
+			ID:     parent.GetID() + ":dataCenter:" + strconv.Itoa(dc),
 			Group:  gocrush.DataCenter,
 			Weight: 1,
 			Parent: parent,
@@ -47,8 +48,8 @@ func makeNewStrawTree() (*gocrush.CrushNode, error) {
 		parent.AddChildren(dataCenter)
 		for rk := 0; rk < 4; rk++ {
 			rack, err := gocrush.NewNode(&gocrush.CNodeConfig{
-				ID:     parent.GetID() + ":rack" + strconv.Itoa(rk),
-				Group:  gocrush.DataCenter,
+				ID:     parent.GetID() + ":rack:" + strconv.Itoa(rk),
+				Group:  gocrush.Rack,
 				Weight: 1,
 				Parent: dataCenter,
 			})
@@ -58,8 +59,8 @@ func makeNewStrawTree() (*gocrush.CrushNode, error) {
 			dataCenter.AddChildren(rack)
 			for nd := 0; nd < 4; nd++ {
 				node, err := gocrush.NewNode(&gocrush.CNodeConfig{
-					ID:     parent.GetID() + ":node" + strconv.Itoa(nd),
-					Group:  gocrush.DataCenter,
+					ID:     parent.GetID() + ":node:" + strconv.Itoa(nd),
+					Group:  gocrush.Node,
 					Weight: 1,
 					Parent: rack,
 				})
@@ -69,8 +70,8 @@ func makeNewStrawTree() (*gocrush.CrushNode, error) {
 				rack.AddChildren(node)
 				for dsk := 0; nd < 4; nd++ {
 					disk, err := gocrush.NewNode(&gocrush.CNodeConfig{
-						ID:     parent.GetID() + ":disk" + strconv.Itoa(dsk),
-						Group:  gocrush.DataCenter,
+						ID:     parent.GetID() + ":disk:" + strconv.Itoa(dsk),
+						Group:  gocrush.Disk,
 						Weight: 1,
 						Parent: node,
 					})

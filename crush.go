@@ -94,22 +94,24 @@ func (c *Client) SetMaxRetries(opts *Config) error {
 
 // Select returns a slice of nodes which are it's childs and
 // been selected by given algorithm.
-func (c *Client) Select(parent CNode, input int64, requestedNodesCount uint8, nodeType uint8) []CNode {
+func (c *Client) Select(parent CNode, input int64, requestedNodesCount uint8, nodeGroup uint8) []CNode {
 	var results []CNode
 	for replica := uint8(0); replica < requestedNodesCount; replica++ {
 		var totalFailures uint8
 		var result CNode
-		for retryDescent := true; retryDescent; retryDescent = false {
+		for retryDescent := true; retryDescent; {
+			retryDescent = false
 			var replicaFailures uint8
 			bucket := parent
-			for retryBucket := true; retryBucket; retryBucket = false {
+			for retryBucket := true; retryBucket; {
+				retryBucket = false
 				if replica == 0 {
 					result = bucket.Select(input, int64(replica+totalFailures))
 				} else {
 					result = bucket.Select(input, int64(replica+replicaFailures))
 				}
 				switch {
-				case result.GetGroup() != nodeType:
+				case result.GetGroup() != nodeGroup:
 					bucket = result
 					retryBucket = true
 				case contains(results, result):
