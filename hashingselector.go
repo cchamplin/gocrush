@@ -10,21 +10,21 @@ import (
 // HashingSelector holds Hashing selector.
 type HashingSelector struct {
 	tokenList tokenList
-	tokenMap  map[int64]Node
+	tokenMap  map[int64]CNode
 }
 
 // NewHashingSelector returns new instance of HashingSelector
-func NewHashingSelector(n Node) *HashingSelector {
+func NewHashingSelector(n CNode) *HashingSelector {
 	var h = new(HashingSelector)
-	var nodes = n.GetChildren()
+	var nodes = n.GetChildrens()
 	var maxWeight int64 = 0
-	h.tokenMap = make(map[int64]Node)
+	h.tokenMap = make(map[int64]CNode)
 	for _, node := range nodes {
 		if node.GetWeight() > maxWeight {
 			maxWeight = node.GetWeight()
 		}
 		var hash []byte
-		for i := int64(0); i < 500 * node.GetWeight() / maxWeight; i++ {
+		for i := int64(0); i < 500*node.GetWeight()/maxWeight; i++ {
 			var input []byte
 			if len(hash) == 0 {
 				input = []byte(node.GetID())
@@ -95,7 +95,7 @@ func btoi(b []byte) int64 {
 }
 
 // Select implements Select interface
-func (s *HashingSelector) Select(input int64, round int64) Node {
+func (s *HashingSelector) Select(input int64, round int64) CNode {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, input)
 	binary.Write(buf, binary.LittleEndian, round)

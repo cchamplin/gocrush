@@ -11,9 +11,12 @@ func BenchmarkCrushStraw(b *testing.B) {
 	tree := makeBenchStrawTree()
 	r := rand.New(rand.NewSource(544564))
 	b.StartTimer()
-
+	g, err := New()
+	if err != nil {
+		panic(err)
+	}
 	for x := 0; x < b.N; x++ {
-		Select(tree, r.Int63(), 3, node)
+		g.Select(tree, r.Int63(), 3, Node)
 	}
 	b.StopTimer()
 }
@@ -23,221 +26,225 @@ func BenchmarkCrushTree(b *testing.B) {
 	r := rand.New(rand.NewSource(544564))
 	tree := makeBenchTreeTree()
 	b.StartTimer()
+	g, err := New()
+	if err != nil {
+		panic(err)
+	}
 	for x := 0; x < b.N; x++ {
-		Select(tree, r.Int63(), 3, node)
+		g.Select(tree, r.Int63(), 3, Node)
 
 	}
 	b.StopTimer()
 }
 
-func makeBenchStrawTree() *TestingNode {
-	var parent = new(TestingNode)
-	parent.ID = "root"
-	parent.Type = root
-	parent.Weight = 0
-	parent.Children = make([]Node, 5)
+func makeBenchStrawTree() *CrushNode {
+	var parent = new(CrushNode)
+	parent.id = "root"
+	parent.group = Root
+	parent.weight = 0
+	parent.childrens = make([]CNode, 5)
 	for dc := 0; dc < 5; dc++ {
-		var dcNode = new(TestingNode)
-		dcNode.Parent = parent
-		dcNode.Weight = 1
-		dcNode.Type = dataCenter
-		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
-		dcNode.Children = make([]Node, 50)
+		var dcNode = new(CrushNode)
+		dcNode.parent = parent
+		dcNode.weight = 1
+		dcNode.group = DataCenter
+		dcNode.id = parent.id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.childrens = make([]CNode, 50)
 
-		parent.Children[dc] = dcNode
+		parent.childrens[dc] = dcNode
 
 		for rk := 0; rk < 50; rk++ {
-			var rkNode = new(TestingNode)
-			rkNode.Parent = dcNode
-			rkNode.Type = rack
-			rkNode.Weight = 1
-			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
-			rkNode.Children = make([]Node, 5000)
+			var rkNode = new(CrushNode)
+			rkNode.parent = dcNode
+			rkNode.group = Rack
+			rkNode.weight = 1
+			rkNode.id = dcNode.id + ":rack" + strconv.Itoa(rk)
+			rkNode.childrens = make([]CNode, 5000)
 
-			dcNode.Children[rk] = rkNode
+			dcNode.childrens[rk] = rkNode
 			for nd := 0; nd < 5000; nd++ {
-				var ndNode = new(TestingNode)
-				ndNode.Parent = rkNode
-				ndNode.Type = node
-				ndNode.Weight = 1
-				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
-				ndNode.Children = make([]Node, 2)
+				var ndNode = new(CrushNode)
+				ndNode.parent = rkNode
+				ndNode.group = Node
+				ndNode.weight = 1
+				ndNode.id = rkNode.id + ":Node" + strconv.Itoa(nd)
+				ndNode.childrens = make([]CNode, 2)
 
-				rkNode.Children[nd] = ndNode
+				rkNode.childrens[nd] = ndNode
 				for dsk := 0; dsk < 2; dsk++ {
-					var dskNode = new(TestingNode)
-					dskNode.Parent = ndNode
-					dskNode.Type = disk
-					dskNode.Weight = 1
-					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
-					dskNode.Selector = NewStrawSelector(dskNode)
-					ndNode.Children[dsk] = dskNode
+					var dskNode = new(CrushNode)
+					dskNode.parent = ndNode
+					dskNode.group = Disk
+					dskNode.weight = 1
+					dskNode.id = ndNode.id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.selector = NewStrawSelector(dskNode)
+					ndNode.childrens[dsk] = dskNode
 				}
-				ndNode.Selector = NewStrawSelector(ndNode)
+				ndNode.selector = NewStrawSelector(ndNode)
 			}
-			rkNode.Selector = NewStrawSelector(rkNode)
+			rkNode.selector = NewStrawSelector(rkNode)
 		}
-		dcNode.Selector = NewStrawSelector(dcNode)
+		dcNode.selector = NewStrawSelector(dcNode)
 	}
-	parent.Selector = NewStrawSelector(parent)
+	parent.selector = NewStrawSelector(parent)
 	return parent
 }
 
-func makeBenchSimpleStrawTree() *TestingNode {
-	var parent = new(TestingNode)
-	parent.ID = "root"
-	parent.Type = root
-	parent.Weight = 0
-	parent.Children = make([]Node, 1)
+func makeBenchSimpleStrawTree() *CrushNode {
+	var parent = new(CrushNode)
+	parent.id = "root"
+	parent.group = Root
+	parent.weight = 0
+	parent.childrens = make([]CNode, 1)
 	for dc := 0; dc < 1; dc++ {
-		var dcNode = new(TestingNode)
-		dcNode.Parent = parent
-		dcNode.Weight = 1
-		dcNode.Type = dataCenter
-		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
-		dcNode.Children = make([]Node, 1)
+		var dcNode = new(CrushNode)
+		dcNode.parent = parent
+		dcNode.weight = 1
+		dcNode.group = DataCenter
+		dcNode.id = parent.id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.childrens = make([]CNode, 1)
 
-		parent.Children[dc] = dcNode
+		parent.childrens[dc] = dcNode
 
 		for rk := 0; rk < 1; rk++ {
-			var rkNode = new(TestingNode)
-			rkNode.Parent = dcNode
-			rkNode.Type = rack
-			rkNode.Weight = 1
-			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
-			rkNode.Children = make([]Node, 3)
+			var rkNode = new(CrushNode)
+			rkNode.parent = dcNode
+			rkNode.group = Rack
+			rkNode.weight = 1
+			rkNode.id = dcNode.id + ":rack" + strconv.Itoa(rk)
+			rkNode.childrens = make([]CNode, 3)
 
-			dcNode.Children[rk] = rkNode
+			dcNode.childrens[rk] = rkNode
 			for nd := 0; nd < 3; nd++ {
-				var ndNode = new(TestingNode)
-				ndNode.Parent = rkNode
-				ndNode.Type = node
-				ndNode.Weight = 1
-				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
-				ndNode.Children = make([]Node, 1)
+				var ndNode = new(CrushNode)
+				ndNode.parent = rkNode
+				ndNode.group = Node
+				ndNode.weight = 1
+				ndNode.id = rkNode.id + ":Node" + strconv.Itoa(nd)
+				ndNode.childrens = make([]CNode, 1)
 
-				rkNode.Children[nd] = ndNode
+				rkNode.childrens[nd] = ndNode
 				for dsk := 0; dsk < 1; dsk++ {
-					var dskNode = new(TestingNode)
-					dskNode.Parent = ndNode
-					dskNode.Type = disk
-					dskNode.Weight = 1
-					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
-					dskNode.Selector = NewStrawSelector(dskNode)
-					ndNode.Children[dsk] = dskNode
+					var dskNode = new(CrushNode)
+					dskNode.parent = ndNode
+					dskNode.group = Disk
+					dskNode.weight = 1
+					dskNode.id = ndNode.id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.selector = NewStrawSelector(dskNode)
+					ndNode.childrens[dsk] = dskNode
 				}
-				ndNode.Selector = NewStrawSelector(ndNode)
+				ndNode.selector = NewStrawSelector(ndNode)
 			}
-			rkNode.Selector = NewStrawSelector(rkNode)
+			rkNode.selector = NewStrawSelector(rkNode)
 		}
-		dcNode.Selector = NewStrawSelector(dcNode)
+		dcNode.selector = NewStrawSelector(dcNode)
 	}
-	parent.Selector = NewStrawSelector(parent)
+	parent.selector = NewStrawSelector(parent)
 	return parent
 }
 
-func makeBenchTreeTree() *TestingNode {
-	var parent = new(TestingNode)
-	parent.ID = "root"
-	parent.Type = root
-	parent.Weight = 0
-	parent.Children = make([]Node, 5)
+func makeBenchTreeTree() *CrushNode {
+	var parent = new(CrushNode)
+	parent.id = "root"
+	parent.group = Root
+	parent.weight = 0
+	parent.childrens = make([]CNode, 5)
 	for dc := 0; dc < 5; dc++ {
-		var dcNode = new(TestingNode)
-		dcNode.Parent = parent
-		dcNode.Weight = 1
-		dcNode.Type = dataCenter
-		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
-		dcNode.Children = make([]Node, 50)
+		var dcNode = new(CrushNode)
+		dcNode.parent = parent
+		dcNode.weight = 1
+		dcNode.group = DataCenter
+		dcNode.id = parent.id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.childrens = make([]CNode, 50)
 
-		parent.Children[dc] = dcNode
+		parent.childrens[dc] = dcNode
 
 		for rk := 0; rk < 50; rk++ {
-			var rkNode = new(TestingNode)
-			rkNode.Parent = dcNode
-			rkNode.Type = rack
-			rkNode.Weight = 1
-			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
-			rkNode.Children = make([]Node, 5000)
+			var rkNode = new(CrushNode)
+			rkNode.parent = dcNode
+			rkNode.group = Rack
+			rkNode.weight = 1
+			rkNode.id = dcNode.id + ":rack" + strconv.Itoa(rk)
+			rkNode.childrens = make([]CNode, 5000)
 
-			dcNode.Children[rk] = rkNode
+			dcNode.childrens[rk] = rkNode
 			for nd := 0; nd < 5000; nd++ {
-				var ndNode = new(TestingNode)
-				ndNode.Parent = rkNode
-				ndNode.Type = node
-				ndNode.Weight = 1
-				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
-				ndNode.Children = make([]Node, 2)
+				var ndNode = new(CrushNode)
+				ndNode.parent = rkNode
+				ndNode.group = Node
+				ndNode.weight = 1
+				ndNode.id = rkNode.id + ":Node" + strconv.Itoa(nd)
+				ndNode.childrens = make([]CNode, 2)
 
-				rkNode.Children[nd] = ndNode
+				rkNode.childrens[nd] = ndNode
 				for dsk := 0; dsk < 2; dsk++ {
-					var dskNode = new(TestingNode)
-					dskNode.Parent = ndNode
-					dskNode.Type = disk
-					dskNode.Weight = 1
-					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
-					dskNode.Selector = NewTreeSelector(dskNode)
-					ndNode.Children[dsk] = dskNode
+					var dskNode = new(CrushNode)
+					dskNode.parent = ndNode
+					dskNode.group = Disk
+					dskNode.weight = 1
+					dskNode.id = ndNode.id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.selector = NewTreeSelector(dskNode)
+					ndNode.childrens[dsk] = dskNode
 				}
-				ndNode.Selector = NewTreeSelector(ndNode)
+				ndNode.selector = NewTreeSelector(ndNode)
 			}
-			rkNode.Selector = NewTreeSelector(rkNode)
+			rkNode.selector = NewTreeSelector(rkNode)
 		}
-		dcNode.Selector = NewTreeSelector(dcNode)
+		dcNode.selector = NewTreeSelector(dcNode)
 	}
-	parent.Selector = NewTreeSelector(parent)
+	parent.selector = NewTreeSelector(parent)
 	return parent
 }
 
-func makeBenchSimpleTreeTree() *TestingNode {
-	var parent = new(TestingNode)
-	parent.ID = "root"
-	parent.Type = root
-	parent.Weight = 0
-	parent.Children = make([]Node, 1)
+func makeBenchSimpleTreeTree() *CrushNode {
+	var parent = new(CrushNode)
+	parent.id = "root"
+	parent.group = Root
+	parent.weight = 0
+	parent.childrens = make([]CNode, 1)
 	for dc := 0; dc < 1; dc++ {
-		var dcNode = new(TestingNode)
-		dcNode.Parent = parent
-		dcNode.Weight = 1
-		dcNode.Type = dataCenter
-		dcNode.ID = parent.ID + ":DataCenter" + strconv.Itoa(dc)
-		dcNode.Children = make([]Node, 1)
+		var dcNode = new(CrushNode)
+		dcNode.parent = parent
+		dcNode.weight = 1
+		dcNode.group = DataCenter
+		dcNode.id = parent.id + ":DataCenter" + strconv.Itoa(dc)
+		dcNode.childrens = make([]CNode, 1)
 
-		parent.Children[dc] = dcNode
+		parent.childrens[dc] = dcNode
 
 		for rk := 0; rk < 1; rk++ {
-			var rkNode = new(TestingNode)
-			rkNode.Parent = dcNode
-			rkNode.Type = rack
-			rkNode.Weight = 1
-			rkNode.ID = dcNode.ID + ":rack" + strconv.Itoa(rk)
-			rkNode.Children = make([]Node, 3)
+			var rkNode = new(CrushNode)
+			rkNode.parent = dcNode
+			rkNode.group = Rack
+			rkNode.weight = 1
+			rkNode.id = dcNode.id + ":rack" + strconv.Itoa(rk)
+			rkNode.childrens = make([]CNode, 3)
 
-			dcNode.Children[rk] = rkNode
+			dcNode.childrens[rk] = rkNode
 			for nd := 0; nd < 3; nd++ {
-				var ndNode = new(TestingNode)
-				ndNode.Parent = rkNode
-				ndNode.Type = node
-				ndNode.Weight = 1
-				ndNode.ID = rkNode.ID + ":Node" + strconv.Itoa(nd)
-				ndNode.Children = make([]Node, 1)
+				var ndNode = new(CrushNode)
+				ndNode.parent = rkNode
+				ndNode.group = Node
+				ndNode.weight = 1
+				ndNode.id = rkNode.id + ":Node" + strconv.Itoa(nd)
+				ndNode.childrens = make([]CNode, 1)
 
-				rkNode.Children[nd] = ndNode
+				rkNode.childrens[nd] = ndNode
 				for dsk := 0; dsk < 1; dsk++ {
-					var dskNode = new(TestingNode)
-					dskNode.Parent = ndNode
-					dskNode.Type = disk
-					dskNode.Weight = 1
-					dskNode.ID = ndNode.ID + ":Disk" + strconv.Itoa(dsk)
-					dskNode.Selector = NewTreeSelector(dskNode)
-					ndNode.Children[dsk] = dskNode
+					var dskNode = new(CrushNode)
+					dskNode.parent = ndNode
+					dskNode.group = Disk
+					dskNode.weight = 1
+					dskNode.id = ndNode.id + ":Disk" + strconv.Itoa(dsk)
+					dskNode.selector = NewTreeSelector(dskNode)
+					ndNode.childrens[dsk] = dskNode
 				}
-				ndNode.Selector = NewTreeSelector(ndNode)
+				ndNode.selector = NewTreeSelector(ndNode)
 			}
-			rkNode.Selector = NewTreeSelector(rkNode)
+			rkNode.selector = NewTreeSelector(rkNode)
 		}
-		dcNode.Selector = NewTreeSelector(dcNode)
+		dcNode.selector = NewTreeSelector(dcNode)
 	}
-	parent.Selector = NewTreeSelector(parent)
+	parent.selector = NewTreeSelector(parent)
 	return parent
 }

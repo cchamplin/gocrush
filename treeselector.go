@@ -2,21 +2,21 @@ package gocrush
 
 // TreeSelector implements Select interface
 type TreeSelector struct {
-	Node        Node
+	Node        CNode
 	weights     []int64
 	totalWeight int64
 }
 
 // NewTreeSelector returns new TreeSelector
-func NewTreeSelector(n Node) *TreeSelector {
+func NewTreeSelector(n CNode) *TreeSelector {
 	var t = new(TreeSelector)
 	if !n.IsLeaf() {
 		t.Node = n
-		var depth = depth(len(n.GetChildren()))
+		var depth = depth(len(n.GetChildrens()))
 		t.weights = make([]int64, 1<<uint(depth))
 
-		//log.Printf("Tree with depth of %d for %d items and %d nodes", depth, len(n.Children), len(t.weights))
-		for idx, child := range n.GetChildren() {
+		//log.Printf("Tree with depth of %d for %d items and %d nodes", depth, len(n.childrens), len(t.weights))
+		for idx, child := range n.GetChildrens() {
 			if child == nil {
 				panic("Null child")
 			}
@@ -35,7 +35,7 @@ func NewTreeSelector(n Node) *TreeSelector {
 }
 
 /*func (t *TreeSelector) AddItem(n Node) {
-	var newSize int = len(t.Node.GetChildren()) + 1
+	var newSize int = len(t.Node.GetChildrens()) + 1
 	var depth = depth(newSize)
 	node := (((newSize - 1) + 1) << 1) - 1
 	var newSlice = make([]int64, 1<<uint(depth))
@@ -50,8 +50,8 @@ func NewTreeSelector(n Node) *TreeSelector {
 		node = parent(node)
 		t.weights[node] += n.GetWeight()
 	}
-	t.Node.Children = append(t.Node.Children, n)
-	t.totalWeight += n.Weight
+	t.Node.childrens = append(t.Node.childrens, n)
+	t.totalWeight += n.weight
 
 }*/
 
@@ -96,7 +96,7 @@ func right(x int) int {
 }
 
 // Select returns a node
-func (s *TreeSelector) Select(input int64, round int64) Node {
+func (s *TreeSelector) Select(input int64, round int64) CNode {
 	n := len(s.weights) >> 1
 	for (n & 1) < 1 {
 		var l int
@@ -110,7 +110,7 @@ func (s *TreeSelector) Select(input int64, round int64) Node {
 			n = right(n)
 		}
 	}
-	var result Node
-	result = s.Node.GetChildren()[n>>1]
+	var result CNode
+	result = s.Node.GetChildrens()[n>>1]
 	return result
 }

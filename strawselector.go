@@ -1,21 +1,20 @@
 package gocrush
 
 import (
-	//"log"
 	"math"
 )
 
 // StrawSelector implements Selector interface
 type StrawSelector struct {
-	Straws map[Node]int64
+	Straws map[CNode]int64
 }
 
 // NewStrawSelector returns new StrawSelector
-func NewStrawSelector(n Node) *StrawSelector {
+func NewStrawSelector(n CNode) *StrawSelector {
 	var s = new(StrawSelector)
-	s.Straws = make(map[Node]int64)
+	s.Straws = make(map[CNode]int64)
 	if !n.IsLeaf() {
-		var sortedNodes = n.GetChildren()
+		var sortedNodes = n.GetChildrens()
 		var numLeft = len(sortedNodes)
 		var straw float64 = 1.0
 		var wbelow float64 = 0.0
@@ -33,8 +32,6 @@ func NewStrawSelector(n Node) *StrawSelector {
 			if i == len(sortedNodes) {
 				break
 			}
-
-			current = sortedNodes[i]
 			var previous = sortedNodes[i-1]
 			if current.GetWeight() == previous.GetWeight() {
 				continue
@@ -57,8 +54,8 @@ func NewStrawSelector(n Node) *StrawSelector {
 }
 
 // Select returns selected node
-func (s *StrawSelector) Select(input int64, round int64) Node {
-	var result Node
+func (s *StrawSelector) Select(input int64, round int64) CNode {
+	var result CNode
 	var hiScore = int64(-1)
 	for child, straw := range s.Straws {
 		var score = weightedScore(child, straw, input, round)
@@ -73,8 +70,7 @@ func (s *StrawSelector) Select(input int64, round int64) Node {
 	return result
 }
 
-func weightedScore(child Node, straw int64, input int64, round int64) int64 {
-
+func weightedScore(child CNode, straw int64, input int64, round int64) int64 {
 	var hash = hash3(input, btoi(digestString(child.GetID())), round)
 	hash = hash & 0xFFFF
 	var weightedScore = hash * straw

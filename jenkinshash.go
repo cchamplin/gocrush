@@ -59,7 +59,6 @@ func hash4(a, b, c, d int64) int64 {
 }
 
 func hashMix(a, b, c int64) (int64, int64, int64) {
-
 	a = subtract(a, b)
 	a = subtract(a, c)
 	a = xor(a, c>>13)
